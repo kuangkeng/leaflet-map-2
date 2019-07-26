@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Title</title>
+    <meta name="description" content="Content description">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/leaflet.css"/>
+    <script type="text/javascript" src="js/leaflet.js"></script>
+    <script type="text/javascript" src="js/homicide-map.js"></script>
+    <script type="text/javascript" src="js/income-map.js"></script>
+    <script type="text/javascript" src="js/race-map.js"></script>
+    <script type="text/javascript" src="js/police-camera.js"></script>
+    <script type="text/javascript" src="js/estimate-camera.js"></script>
+    <script type="text/javascript" src="js/streets-camera.js"></script>
+  </head>
+
+<style>
+
+body {
+  font-family: Lato;
+  font-size: 112.5%;
+  line-height: 1.1em;
+  color: black;
+} 
+
+#wrapper {
+  border:1px solid #D3D3D3;
+  max-width: 800px;  /*MODIFY: set the maximum width of the map.*/
+  margin: 0 auto;
+}
+
+.head {padding:10px;}
+
+#map-container { 
+  height: 800px; 
+  width: 100%;
+}
+
+.headline {
+  font-style: normal;
+  font-size: 24px;
+  font-weight: 400;
+  padding-bottom: 10px;
+  padding-top: 10px;
+}
+
+#text {
+  font-size: 18px;
+  font-weight: normal;
+  line-height: 18px;
+}
+
+
+@media (max-width: 500px ) {
+  .headline {font-size: 16px; line-height: 20px; padding-bottom: 0px;}
+  #text {font-size: 13px;line-height: 15px;padding-bottom: 3px;}
+}
+
+@media (max-width: 400px ) { 
+}
+
+</style>
+</head>
+<body>
+
+<div id="wrapper"> 
+    <div class="head">
+        <div class="headline">Title</div>
+        <div id="text">Description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</div> 
+    </div>   
+    <div id="map-container">
+    </div>
+</div>    
+
+<script type="text/javascript">
+
+var mymap = L.map('map-container').setView([38.634621, -90.239395], 12);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  subdomains: 'abcd',
+  maxZoom: 19
+}).addTo(mymap);
+
+//Style map
+var geojsonMarkerOptions = {
+    radius: 8,
+    fillColor: "#ff7800",
+    color: "#000",
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.8
+};
+
+var incomeStyle = {
+    "color": "#ff7800",
+    "weight": 5,
+    "opacity": 0.65
+};
+
+var raceStyle = {
+    "color": "#ff0000",
+    "weight": 5,
+    "opacity": 0.65
+};
+
+//Set up all 3 camera map layers
+
+
+//Set up base layers
+var layerIncome = L.geoJSON(incomeMap, {
+    style: incomeStyle
+});
+
+var layerRace = L.geoJSON(raceMap, {
+    style: raceStyle
+});
+
+//colect both base layers into an array
+var baseMaps = {
+    "Income": layerIncome,
+    "Race": layerRace,
+};
+
+//Set up camera layers
+var layerPolice = L.geoJSON(policeCamera, {
+  pointToLayer: (geoJsonPoint, latlng) => {
+    return L.marker(latlng);
+  },
+});
+
+var layerStreets = L.geoJSON(streetsCamera, {
+  pointToLayer: (geoJsonPoint, latlng) => {
+    return L.marker(latlng);
+  },
+});
+
+var layerEstimate = L.geoJSON(estimateCamera, {
+  pointToLayer: (geoJsonPoint, latlng) => {
+    return L.marker(latlng);
+  },
+});
+
+//colect all camera layers into an array
+var cameraMaps = {
+    "Police cameras": layerPolice,
+    "Street cameras": layerStreets,
+    "Estimated cameras": layerEstimate
+};
+
+//Preload income map
+layerIncome.addTo(mymap);
+
+//Load control panel that has both base maps and camera maps option
+var control = L.control.layers(baseMaps, cameraMaps).addTo(mymap);
+
+
+
+
+//Load homicide map - coordinates
+// L.geoJSON(estimateCamera, {
+//   pointToLayer: (geoJsonPoint, latlng) => {
+//     return L.marker(latlng);
+//   },
+// }).addTo(mymap);
+
+//Onclick listen to event
+// function onMapClick(e) {
+//     alert("You clicked the map at " + e.latlng);
+// }
+// mymap.on('click', onMapClick);
+
+</script>
+
+</body>
+</html>
