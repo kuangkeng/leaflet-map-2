@@ -11,8 +11,7 @@
     <link rel="stylesheet" href="css/leaflet.css"/>
     <script type="text/javascript" src="js/leaflet.js"></script>
     <script type="text/javascript" src="js/homicide-map.js"></script>
-    <script type="text/javascript" src="js/income-map.js"></script>
-    <script type="text/javascript" src="js/race-map.js"></script>
+    <script type="text/javascript" src="js/map-data.js"></script>
     <script type="text/javascript" src="js/police-camera.js"></script>
     <script type="text/javascript" src="js/estimate-camera.js"></script>
     <script type="text/javascript" src="js/streets-camera.js"></script>
@@ -54,6 +53,9 @@ body {
   line-height: 18px;
 }
 
+.leaflet-popup-close-button {
+  display: none;
+}
 
 @media (max-width: 500px ) {
   .headline {font-size: 16px; line-height: 20px; padding-bottom: 0px;}
@@ -88,41 +90,48 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
 
 //Style map
 
-// function getColor(d) {
-//     return d > 0 ? '#f2f0f7' :
-//            d > 10000  ? '#dadaeb' :
-//            d > 30000  ? '#bcbddc' :
-//            d > 50000  ? '#9e9ac8' :
-//            d > 70000   ? '#756bb1' :
-//            d > 90000   ? '#54278f' :
-// }
+function getRaceColor(d) {
+    return d == "No population" ? '#ffffff' :
+           d > 0.8  ? '#4a1486' :
+           d > 0.6   ? '#6a51a3' :
+           d > 0.4   ? '#807dba' :
+           d > 0.2   ? '#9e9ac8' :
+                      '#bcbddc';
+}
 
-// function incomeStyle(feature) {
-//     return {
-//         fillColor: getColor(feature.properties.density),
-//         weight: 2,
-//         opacity: 1,
-//         color: 'white',
-//         dashArray: '3',
-//         fillOpacity: 0.7
-//     };
-// }
+function raceStyle(feature) {
+    return {
+        fillColor: getRaceColor(feature.properties.black),
+        weight: 1,
+        opacity: 1,
+        color: 'white',
+        fillOpacity: 0.5
+    };
+}
+
+function getIncomeColor(d) {
+    return d == "No population" ? '#ffffff' :
+           d > 89999  ? '#005a32' :
+           d > 69999  ? '#238b45' :
+           d > 49999   ? '#41ab5d' :
+           d > 29999   ? '#74c476' :
+           d > 9999   ? '#a1d99b' :
+                      '#c7e9c0';
+}
+
+function incomeStyle(feature) {
+    return {
+        fillColor: getIncomeColor(feature.properties.income),
+        weight: 1,
+        opacity: 1,
+        color: 'white',
+        fillOpacity: 0.5
+    };
+}
 
 //create pane to fix the zindex of the 2 base layers (race and income)
 mymap.createPane('five');
 mymap.createPane('four');
-
-var incomeStyle = {
-    "color": "#ff7800",
-    "weight": 5,
-    "opacity": 0.65
-};
-
-var raceStyle = {
-    "color": "#ff0000",
-    "weight": 5,
-    "opacity": 0.65
-};
 
 var policeStyle = {
     radius: 5,
@@ -144,21 +153,23 @@ var streetsStyle = {
 
 var estimateStyle = {
     radius: 5,
-    fillColor: "#FF7F00",
-    color: "#FF7F00",
+    fillColor: "#ffff33",
+    color: "#ffff33",
     weight: 1,
     opacity: 1,
     fillOpacity: 0.5
 };
 
 //Set up base layers
-var layerIncome = L.geoJSON(incomeMap, {
+var layerIncome = L.geoJSON(dataMap, {
     style: incomeStyle,
+    onEachFeature: onIncomeBlock,
     pane: 'five'
 });
 
-var layerRace = L.geoJSON(raceMap, {
+var layerRace = L.geoJSON(dataMap, {
     style: raceStyle,
+    onEachFeature: onRaceBlock,
     pane: 'four'
 });
 
@@ -168,8 +179,8 @@ var baseMaps = {
     "Race": layerRace,
 };
 
-//setup popup
-function onEachFeature(feature, layer) {
+//setup popup for camera layer
+function onEachCamera(feature, layer) {
         layer.bindPopup(feature.properties.Name + "<br>" + feature.properties.description);
 }
 
@@ -178,7 +189,7 @@ var layerPolice = L.geoJSON(policeCamera, {
   pointToLayer: (geoJsonPoint, latlng) => {
     return L.circleMarker(latlng, policeStyle);
   },
-  onEachFeature: onEachFeature,
+  onEachFeature: onEachCamera,
 });
 
 
@@ -186,14 +197,14 @@ var layerStreets = L.geoJSON(streetsCamera, {
   pointToLayer: (geoJsonPoint, latlng) => {
     return L.circleMarker(latlng, streetsStyle);
   },
-  onEachFeature: onEachFeature,
+  onEachFeature: onEachCamera,
 });
 
 var layerEstimate = L.geoJSON(estimateCamera, {
   pointToLayer: (geoJsonPoint, latlng) => {
     return L.circleMarker(latlng, estimateStyle);
   },
-  onEachFeature: onEachFeature,
+  onEachFeature: onEachCamera,
 });
 
 //colect all camera layers into an array
@@ -212,18 +223,73 @@ var control = L.control.layers(baseMaps, cameraMaps).addTo(mymap);
 mymap.getPane('four').style.zIndex = 300;
 mymap.getPane('five').style.zIndex = 300;
 
-//Load homicide map - coordinates
-// L.geoJSON(estimateCamera, {
-//   pointToLayer: (geoJsonPoint, latlng) => {
-//     return L.marker(latlng);
-//   },
-// }).addTo(mymap);
+//mouseover interaction
+function highlightIncome(feature, layer) {
+    this.setStyle({
+        weight: 2,
+        color: '#333',
+        fillOpacity: 0.7
+    });
+    this.bindPopup(this.feature.properties.name + "<br>Median household income: <b>" + formatIncome(this.feature.properties.income) + "</b>").openPopup();
 
-//Onclick listen to event
-// function onMapClick(e) {
-//     alert("You clicked the map at " + e.latlng);
-// }
-// mymap.on('click', onMapClick);
+    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        this.bringToFront();
+    }
+}
+
+function highlightRace(feature, layer) {
+    this.setStyle({
+        weight: 2,
+        color: '#333',
+        fillOpacity: 0.7
+    });
+    this.bindPopup(this.feature.properties.name + "<br>Black population: <b>" + formatRace(this.feature.properties.black) + "</b>").openPopup();
+
+    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        this.bringToFront();
+    }
+}
+
+function resetIncome(e) {
+    this.closePopup();
+    layerIncome.resetStyle(e.target);
+}
+
+function resetRace(e) {
+    this.closePopup();
+    layerRace.resetStyle(e.target);
+}
+
+function zoomToFeature(e) {
+    mymap.fitBounds(e.target.getBounds());
+}
+
+function onIncomeBlock(feature, layer) {
+    layer.on({
+        mouseover: highlightIncome,
+        mouseout: resetIncome,
+        click: zoomToFeature
+    });
+}
+
+function onRaceBlock(feature, layer) {
+    layer.on({
+        mouseover: highlightRace,
+        mouseout: resetRace,
+        click: zoomToFeature
+    });
+}
+
+//thousand separator function
+function formatIncome(num) {
+  if (num == "No population"){ return "No population"}
+    else {return "$" + num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
+}
+
+function formatRace(num) {
+  if (num == "No population"){ return "No population"}
+    else {return (num*100).toFixed(1) + "%"}
+}
 
 </script>
 
