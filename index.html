@@ -224,7 +224,19 @@ mymap.getPane('four').style.zIndex = 300;
 mymap.getPane('five').style.zIndex = 300;
 
 //mouseover interaction
+
+var lastClickedIncome = null;
 function highlightIncome(feature, layer) {
+    //return the previous polygon to its original style
+    if (lastClickedIncome !== null) {
+      lastClickedIncome.setStyle({
+        weight: 1,
+        color: 'white',
+        fillOpacity: 0.5
+      });
+    }
+
+    var thisIncome = this;
     this.setStyle({
         weight: 2,
         color: '#333',
@@ -233,11 +245,23 @@ function highlightIncome(feature, layer) {
     this.bindPopup(this.feature.properties.name + "<br>Median household income: <b>" + formatIncome(this.feature.properties.income) + "</b>").openPopup();
 
     if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-        this.bringToFront();
+      this.bringToFront();
     }
+    lastClickedIncome = thisIncome;
 }
 
+var lastClickedRace = null;
 function highlightRace(feature, layer) {
+    //return the previous polygon to its original style
+    if (lastClickedRace !== null) {
+      lastClickedRace.setStyle({
+        weight: 1,
+        color: 'white',
+        fillOpacity: 0.5
+      });
+    }
+
+    var thisRace = this;
     this.setStyle({
         weight: 2,
         color: '#333',
@@ -248,6 +272,7 @@ function highlightRace(feature, layer) {
     if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
         this.bringToFront();
     }
+    lastClickedRace = thisRace;
 }
 
 function resetIncome(e) {
