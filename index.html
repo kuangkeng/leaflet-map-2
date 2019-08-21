@@ -181,7 +181,7 @@ var baseMaps = {
 
 //setup popup for camera layer
 function onEachCamera(feature, layer) {
-        layer.bindPopup(feature.properties.Name + "<br>" + feature.properties.description);
+        layer.bindPopup("Location: " + feature.properties.Location_Clean + "<br>" + "Owner: " + feature.properties.Owners);
 }
 
 //Set up camera layers
@@ -260,15 +260,11 @@ function resetRace(e) {
     layerRace.resetStyle(e.target);
 }
 
-function zoomToFeature(e) {
-    mymap.fitBounds(e.target.getBounds());
-}
-
 function onIncomeBlock(feature, layer) {
     layer.on({
         mouseover: highlightIncome,
         mouseout: resetIncome,
-        click: zoomToFeature
+        click: highlightIncome,
     });
 }
 
@@ -276,7 +272,7 @@ function onRaceBlock(feature, layer) {
     layer.on({
         mouseover: highlightRace,
         mouseout: resetRace,
-        click: zoomToFeature
+        click: highlightRace,
     });
 }
 
