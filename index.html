@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="css/leaflet.css"/>
     <script type="text/javascript" src="js/leaflet.js"></script>
     <script type="text/javascript" src="js/homicide-map.js"></script>
-    <script type="text/javascript" src="js/map-data.js"></script>
+    <script type="text/javascript" src="js/map-data-crime.js"></script>
     <script type="text/javascript" src="js/police-camera.js"></script>
     <script type="text/javascript" src="js/estimate-camera.js"></script>
     <script type="text/javascript" src="js/streets-camera.js"></script>
@@ -34,9 +34,10 @@ body {
 
 .head {padding:10px;}
 
-#map-container { 
+.mapbox { 
   height: 800px; 
   width: 100%;
+  margin-bottom: 20px;
 }
 
 .headline {
@@ -71,10 +72,16 @@ body {
 
 <div id="wrapper"> 
     <div class="head">
-        <div class="headline">Title</div>
+        <div class="headline">Race and Income</div>
         <div id="text">Description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</div> 
     </div>   
-    <div id="map-container">
+    <div class="mapbox" id="map-container">
+    </div>
+    <div class="head">
+      <div class="headline">Homicides</div>
+      <div id="text">Description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</div> 
+    </div>   
+    <div class="mapbox" id="map-container-2">
     </div>
 </div>    
 
@@ -87,6 +94,15 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   subdomains: 'abcd',
   maxZoom: 19
 }).addTo(mymap);
+
+//set up second map
+var mymap2 = L.map('map-container-2').setView([38.634621, -90.239395], 12);
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  subdomains: 'abcd',
+  maxZoom: 19
+}).addTo(mymap2);
 
 //Style map
 
@@ -129,9 +145,32 @@ function incomeStyle(feature) {
     };
 }
 
+function getCrimeColor(d) {
+    return d == "No population" ? '#ffffff' :
+           d > 4  ? '#d94801' :
+           d > 3  ? '#f16913' :
+           d > 2   ? '#fd8d3c' :
+           d > 1   ? '#fdae6b' :
+           d > 0   ? '#fdd0a2' :
+                      '#fee6ce';
+}
+
+// var colors = [','','','','','','','#a63603','#7f2704'];
+
+function crimeStyle(feature) {
+    return {
+        fillColor: getCrimeColor(feature.properties.homicide),
+        weight: 1,
+        opacity: 1,
+        color: 'white',
+        fillOpacity: 0.5
+    };
+}
+
 //create pane to fix the zindex of the 2 base layers (race and income)
 mymap.createPane('five');
 mymap.createPane('four');
+mymap2.createPane('three');
 
 var policeStyle = {
     radius: 5,
@@ -173,6 +212,12 @@ var layerRace = L.geoJSON(dataMap, {
     pane: 'four'
 });
 
+var layerCrime = L.geoJSON(dataMap, {
+    style: crimeStyle,
+    onEachFeature: onCrimeBlock,
+    pane: 'three'
+});
+
 //colect both base layers into an array
 var baseMaps = {
     "Income": layerIncome,
@@ -181,7 +226,7 @@ var baseMaps = {
 
 //setup popup for camera layer
 function onEachCamera(feature, layer) {
-        layer.bindPopup("Location: " + feature.properties.Location_Clean + "<br>" + "Owner: " + feature.properties.Owners);
+        layer.bindPopup("<b>Camera</b><br>Location: " + feature.properties.Location_Clean + "<br>" + "Owner: " + feature.properties.Owners);
 }
 
 //Set up camera layers
@@ -217,11 +262,17 @@ var cameraMaps = {
 //Preload income map
 layerIncome.addTo(mymap);
 
+//Preload crime map
+layerCrime.addTo(mymap2);
+
 //Load control panel that has both base maps and camera maps option
 var control = L.control.layers(baseMaps, cameraMaps).addTo(mymap);
 
+var control = L.control.layers(null, cameraMaps).addTo(mymap2);
+
 mymap.getPane('four').style.zIndex = 300;
 mymap.getPane('five').style.zIndex = 300;
+mymap2.getPane('three').style.zIndex = 300;
 
 //mouseover interaction
 
@@ -275,6 +326,31 @@ function highlightRace(feature, layer) {
     lastClickedRace = thisRace;
 }
 
+var lastClickedCrime = null;
+function highlightCrime(feature, layer) {
+    //return the previous polygon to its original style
+    if (lastClickedCrime !== null) {
+      lastClickedCrime.setStyle({
+        weight: 1,
+        color: 'white',
+        fillOpacity: 0.5
+      });
+    }
+
+    var thisCrime = this;
+    this.setStyle({
+        weight: 2,
+        color: '#333',
+        fillOpacity: 0.7
+    });
+    this.bindPopup(this.feature.properties.name + "<br>No. of homicides: <b>" + this.feature.properties.homicide + "</b>").openPopup();
+
+    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+        this.bringToFront();
+    }
+    lastClickedCrime = thisCrime;
+}
+
 function resetIncome(e) {
     this.closePopup();
     layerIncome.resetStyle(e.target);
@@ -283,6 +359,11 @@ function resetIncome(e) {
 function resetRace(e) {
     this.closePopup();
     layerRace.resetStyle(e.target);
+}
+
+function resetCrime(e) {
+    this.closePopup();
+    layerCrime.resetStyle(e.target);
 }
 
 function onIncomeBlock(feature, layer) {
@@ -298,6 +379,14 @@ function onRaceBlock(feature, layer) {
         mouseover: highlightRace,
         mouseout: resetRace,
         click: highlightRace,
+    });
+}
+
+function onCrimeBlock(feature, layer) {
+    layer.on({
+        mouseover: highlightCrime,
+        mouseout: resetCrime,
+        click: highlightCrime,
     });
 }
 
