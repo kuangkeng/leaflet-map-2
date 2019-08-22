@@ -18,28 +18,23 @@
   </head>
 
 <style>
-
 body {
   font-family: Lato;
   font-size: 112.5%;
   line-height: 1.1em;
   color: black;
 } 
-
 #wrapper {
   border:1px solid #D3D3D3;
   max-width: 800px;  /*MODIFY: set the maximum width of the map.*/
   margin: 0 auto;
 }
-
 .head {padding:10px;}
-
 .mapbox { 
   height: 800px; 
   width: 100%;
   margin-bottom: 20px;
 }
-
 .headline {
   font-style: normal;
   font-size: 24px;
@@ -47,25 +42,20 @@ body {
   padding-bottom: 10px;
   padding-top: 10px;
 }
-
 #text {
   font-size: 18px;
   font-weight: normal;
   line-height: 18px;
 }
-
 .leaflet-popup-close-button {
   display: none;
 }
-
 @media (max-width: 500px ) {
   .headline {font-size: 16px; line-height: 20px; padding-bottom: 0px;}
   #text {font-size: 13px;line-height: 15px;padding-bottom: 3px;}
 }
-
 @media (max-width: 400px ) { 
 }
-
 </style>
 </head>
 <body>
@@ -77,35 +67,17 @@ body {
     </div>   
     <div class="mapbox" id="map-container">
     </div>
-    <div class="head">
-      <div class="headline">Homicides</div>
-      <div id="text">Description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</div> 
-    </div>   
-    <div class="mapbox" id="map-container-2">
-    </div>
 </div>    
 
 <script type="text/javascript">
-
 var mymap = L.map('map-container').setView([38.634621, -90.239395], 12);
-
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
   subdomains: 'abcd',
   maxZoom: 19
 }).addTo(mymap);
 
-//set up second map
-var mymap2 = L.map('map-container-2').setView([38.634621, -90.239395], 12);
-
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  subdomains: 'abcd',
-  maxZoom: 19
-}).addTo(mymap2);
-
 //Style map
-
 function getRaceColor(d) {
     return d == "No population" ? '#ffffff' :
            d > 0.8  ? '#4a1486' :
@@ -114,7 +86,6 @@ function getRaceColor(d) {
            d > 0.2   ? '#9e9ac8' :
                       '#bcbddc';
 }
-
 function raceStyle(feature) {
     return {
         fillColor: getRaceColor(feature.properties.black),
@@ -124,17 +95,16 @@ function raceStyle(feature) {
         fillOpacity: 0.5
     };
 }
-
 function getIncomeColor(d) {
     return d == "No population" ? '#ffffff' :
-           d > 89999  ? '#005a32' :
-           d > 69999  ? '#238b45' :
-           d > 49999   ? '#41ab5d' :
-           d > 29999   ? '#74c476' :
-           d > 9999   ? '#a1d99b' :
-                      '#c7e9c0';
+           d == "N/A" ? '#ffffff' :
+           d > 89999  ? '#c7e9c0' :
+           d > 69999  ? '#a1d99b' :
+           d > 49999   ? '#74c476' :
+           d > 29999   ? '#41ab5d' :
+           d > 9999   ? '#238b45' :
+                      '#005a32';
 }
-
 function incomeStyle(feature) {
     return {
         fillColor: getIncomeColor(feature.properties.income),
@@ -145,43 +115,19 @@ function incomeStyle(feature) {
     };
 }
 
-function getCrimeColor(d) {
-    return d == "No population" ? '#ffffff' :
-           d > 4  ? '#d94801' :
-           d > 3  ? '#f16913' :
-           d > 2   ? '#fd8d3c' :
-           d > 1   ? '#fdae6b' :
-           d > 0   ? '#fdd0a2' :
-                      '#fee6ce';
-}
-
-// var colors = [','','','','','','','#a63603','#7f2704'];
-
-function crimeStyle(feature) {
-    return {
-        fillColor: getCrimeColor(feature.properties.homicide),
-        weight: 1,
-        opacity: 1,
-        color: 'white',
-        fillOpacity: 0.5
-    };
-}
+//style marker for homicide
+var homicideIcon = L.icon({
+    iconUrl: 'js/icon-cross.png',
+    iconSize: [10, 10],
+    iconAnchor: [5, 5],
+    popupAnchor: [-5, -5],
+});
 
 //create pane to fix the zindex of the 2 base layers (race and income)
 mymap.createPane('five');
 mymap.createPane('four');
-mymap2.createPane('three');
 
 var policeStyle = {
-    radius: 5,
-    fillColor: "#D3401E",
-    color: "#D3401E",
-    weight: 1,
-    opacity: 1,
-    fillOpacity: 0.5
-};
-
-var streetsStyle = {
     radius: 5,
     fillColor: "#0376B4",
     color: "#0376B4",
@@ -189,11 +135,18 @@ var streetsStyle = {
     opacity: 1,
     fillOpacity: 0.5
 };
-
+var streetsStyle = {
+    radius: 5,
+    fillColor: "#f5c11f",
+    color: "#f5c11f",
+    weight: 1,
+    opacity: 1,
+    fillOpacity: 0.5
+};
 var estimateStyle = {
     radius: 5,
-    fillColor: "#ffff33",
-    color: "#ffff33",
+    fillColor: "#696969",
+    color: "#696969",
     weight: 1,
     opacity: 1,
     fillOpacity: 0.5
@@ -205,17 +158,10 @@ var layerIncome = L.geoJSON(dataMap, {
     onEachFeature: onIncomeBlock,
     pane: 'five'
 });
-
 var layerRace = L.geoJSON(dataMap, {
     style: raceStyle,
     onEachFeature: onRaceBlock,
     pane: 'four'
-});
-
-var layerCrime = L.geoJSON(dataMap, {
-    style: crimeStyle,
-    onEachFeature: onCrimeBlock,
-    pane: 'three'
 });
 
 //colect both base layers into an array
@@ -223,14 +169,14 @@ var baseMaps = {
     "Income": layerIncome,
     "Race": layerRace,
 };
-
 //setup popup for camera layer
 function onEachCamera(feature, layer) {
-        layer.bindPopup("<b>Camera</b><br>Location: " + feature.properties.Location_Clean + "<br>" + "Owner: " + feature.properties.Owners);
+        layer.bindPopup("<b>Camera</b><br>Location: " + feature.properties.Location_Clean);
 }
 
-function onEachCamera2(feature, layer) {
-        layer.bindPopup("<b>Camera</b><br>Location: " + feature.properties.Location_Clean + "<br>" + "Owner: " + feature.properties.Owners);
+//setup popup for homicide layer
+function onEachHomicide(feature, layer) {
+        layer.bindPopup("<b>Homicide</b><br>Date/Time: " + feature.properties.DateOccur);
 }
 
 //Set up camera layers
@@ -240,15 +186,12 @@ var layerPolice = L.geoJSON(policeCamera, {
   },
   onEachFeature: onEachCamera,
 });
-
-
 var layerStreets = L.geoJSON(streetsCamera, {
   pointToLayer: (geoJsonPoint, latlng) => {
     return L.circleMarker(latlng, streetsStyle);
   },
   onEachFeature: onEachCamera,
 });
-
 var layerEstimate = L.geoJSON(estimateCamera, {
   pointToLayer: (geoJsonPoint, latlng) => {
     return L.circleMarker(latlng, estimateStyle);
@@ -256,58 +199,32 @@ var layerEstimate = L.geoJSON(estimateCamera, {
   onEachFeature: onEachCamera,
 });
 
-var layerPolice2 = L.geoJSON(policeCamera, {
+//set up homicide layer
+var layerHomicide = L.geoJSON(homicideMap, {
   pointToLayer: (geoJsonPoint, latlng) => {
-    return L.circleMarker(latlng, policeStyle);
+    return L.marker(latlng, {icon: homicideIcon});
+    // return L.circleMarker(latlng, homicideStyle);
   },
-  onEachFeature: onEachCamera2,
-});
-
-
-var layerStreets2 = L.geoJSON(streetsCamera, {
-  pointToLayer: (geoJsonPoint, latlng) => {
-    return L.circleMarker(latlng, streetsStyle);
-  },
-  onEachFeature: onEachCamera2,
-});
-
-var layerEstimate2 = L.geoJSON(estimateCamera, {
-  pointToLayer: (geoJsonPoint, latlng) => {
-    return L.circleMarker(latlng, estimateStyle);
-  },
-  onEachFeature: onEachCamera2,
+  onEachFeature: onEachHomicide,
 });
 
 //colect all camera layers into an array
 var cameraMaps = {
     "Police cameras": layerPolice,
     "Street cameras": layerStreets,
-    "Estimated cameras": layerEstimate
-};
-
-var cameraMaps2 = {
-    "Police cameras": layerPolice2,
-    "Street cameras": layerStreets2,
-    "Estimated cameras": layerEstimate2
+    "Estimated cameras": layerEstimate,
+    "Homicide": layerHomicide
 };
 
 //Preload income map
 layerIncome.addTo(mymap);
 
-//Preload crime map
-layerCrime.addTo(mymap2);
-
 //Load control panel that has both base maps and camera maps option
 var control = L.control.layers(baseMaps, cameraMaps).addTo(mymap);
-
-var control = L.control.layers(null, cameraMaps2).addTo(mymap2);
-
 mymap.getPane('four').style.zIndex = 300;
 mymap.getPane('five').style.zIndex = 300;
-mymap2.getPane('three').style.zIndex = 300;
 
 //mouseover interaction
-
 var lastClickedIncome = null;
 function highlightIncome(feature, layer) {
     //return the previous polygon to its original style
@@ -318,7 +235,6 @@ function highlightIncome(feature, layer) {
         fillOpacity: 0.5
       });
     }
-
     var thisIncome = this;
     this.setStyle({
         weight: 2,
@@ -326,13 +242,11 @@ function highlightIncome(feature, layer) {
         fillOpacity: 0.7
     });
     this.bindPopup(this.feature.properties.name + "<br>Median household income: <b>" + formatIncome(this.feature.properties.income) + "</b>").openPopup();
-
     if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
       this.bringToFront();
     }
     lastClickedIncome = thisIncome;
 }
-
 var lastClickedRace = null;
 function highlightRace(feature, layer) {
     //return the previous polygon to its original style
@@ -343,7 +257,6 @@ function highlightRace(feature, layer) {
         fillOpacity: 0.5
       });
     }
-
     var thisRace = this;
     this.setStyle({
         weight: 2,
@@ -351,51 +264,19 @@ function highlightRace(feature, layer) {
         fillOpacity: 0.7
     });
     this.bindPopup(this.feature.properties.name + "<br>Black population: <b>" + formatRace(this.feature.properties.black) + "</b>").openPopup();
-
     if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
         this.bringToFront();
     }
     lastClickedRace = thisRace;
 }
 
-var lastClickedCrime = null;
-function highlightCrime(feature, layer) {
-    //return the previous polygon to its original style
-    if (lastClickedCrime !== null) {
-      lastClickedCrime.setStyle({
-        weight: 1,
-        color: 'white',
-        fillOpacity: 0.5
-      });
-    }
-
-    var thisCrime = this;
-    this.setStyle({
-        weight: 2,
-        color: '#333',
-        fillOpacity: 0.7
-    });
-    this.bindPopup(this.feature.properties.name + "<br>No. of homicides: <b>" + this.feature.properties.homicide + "</b>").openPopup();
-
-    if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
-        this.bringToFront();
-    }
-    lastClickedCrime = thisCrime;
-}
-
 function resetIncome(e) {
     this.closePopup();
     layerIncome.resetStyle(e.target);
 }
-
 function resetRace(e) {
     this.closePopup();
     layerRace.resetStyle(e.target);
-}
-
-function resetCrime(e) {
-    this.closePopup();
-    layerCrime.resetStyle(e.target);
 }
 
 function onIncomeBlock(feature, layer) {
@@ -405,7 +286,6 @@ function onIncomeBlock(feature, layer) {
         click: highlightIncome,
     });
 }
-
 function onRaceBlock(feature, layer) {
     layer.on({
         mouseover: highlightRace,
@@ -414,25 +294,16 @@ function onRaceBlock(feature, layer) {
     });
 }
 
-function onCrimeBlock(feature, layer) {
-    layer.on({
-        mouseover: highlightCrime,
-        mouseout: resetCrime,
-        click: highlightCrime,
-    });
-}
-
 //thousand separator function
 function formatIncome(num) {
   if (num == "No population"){ return "No population"}
+    else if (num == "N/A"){ return "N/A"}
     else {return "$" + num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
 }
-
 function formatRace(num) {
   if (num == "No population"){ return "No population"}
     else {return (num*100).toFixed(1) + "%"}
 }
-
 </script>
 
 </body>
