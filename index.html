@@ -6,8 +6,8 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"> -->
     <link rel="stylesheet" href="css/leaflet.css"/>
     <script type="text/javascript" src="js/leaflet.js"></script>
     <script type="text/javascript" src="js/homicide-map.js"></script>
@@ -50,6 +50,19 @@ body {
 .leaflet-popup-close-button {
   display: none;
 }
+
+.legend {
+	line-height: 18px;
+	color: #555;
+}
+.legend i {
+	width: 18px;
+	height: 18px;
+	float: left;
+	margin-right: 8px;
+	opacity: 0.7;
+}
+
 @media (max-width: 500px ) {
   .headline {font-size: 16px; line-height: 20px; padding-bottom: 0px;}
   #text {font-size: 13px;line-height: 15px;padding-bottom: 3px;}
@@ -71,21 +84,22 @@ body {
 
 <script type="text/javascript">
 var mymap = L.map('map-container').setView([38.634621, -90.239395], 12);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  subdomains: 'abcd',
-  maxZoom: 19
+L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}{r}.png', {
+	attribution: '<a href="https://wikimediafoundation.org/wiki/Maps_Terms_of_Use">Wikimedia</a>',
+	minZoom: 1,
+	maxZoom: 19
 }).addTo(mymap);
 
 //Style map
 function getRaceColor(d) {
     return d == "No population" ? '#ffffff' :
            d > 0.8  ? '#4a1486' :
-           d > 0.6   ? '#6a51a3' :
-           d > 0.4   ? '#807dba' :
-           d > 0.2   ? '#9e9ac8' :
+           d > 0.6  ? '#6a51a3' :
+           d > 0.4  ? '#807dba' :
+           d > 0.2  ? '#9e9ac8' :
                       '#bcbddc';
 }
+
 function raceStyle(feature) {
     return {
         fillColor: getRaceColor(feature.properties.black),
@@ -97,14 +111,16 @@ function raceStyle(feature) {
 }
 function getIncomeColor(d) {
     return d == "No population" ? '#ffffff' :
-           d == "N/A" ? '#ffffff' :
-           d > 89999  ? '#c7e9c0' :
-           d > 69999  ? '#a1d99b' :
-           d > 49999   ? '#74c476' :
-           d > 29999   ? '#41ab5d' :
-           d > 9999   ? '#238b45' :
-                      '#005a32';
+           d == "N/A" ? '#808080' :
+           d > 89999  ? '#fc9272' :
+           d > 69999  ? '#fb6a4a' :
+           d > 49999   ? '#ef3b2c' :
+           d > 29999   ? '#cb181d' :
+           d > 9999   ? '#a50f15' :
+                      '#67000d';
 }
+
+
 function incomeStyle(feature) {
     return {
         fillColor: getIncomeColor(feature.properties.income),
@@ -300,10 +316,73 @@ function formatIncome(num) {
     else if (num == "N/A"){ return "N/A"}
     else {return "$" + num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
 }
+function formatIncome2(num) {
+  if (num == "No population"){ return "No population"}
+    else if (num == "N/A"){ return "N/A"}
+    else {return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
+}
 function formatRace(num) {
   if (num == "No population"){ return "No population"}
     else {return (num*100).toFixed(1) + "%"}
 }
+function formatLegendRace1(num) {
+  if (num == "No population"){ return "No population"}
+    else {return (num*100).toFixed(0)}
+}
+function formatLegendRace2(num) {
+  if (num == "No population"){ return "No population"}
+    else {return (num*100).toFixed(0) + "%"}
+}
+
+//setup legend
+
+var legendIncome = L.control({position: 'bottomright'});
+legendIncome.onAdd = function (map) {
+	var div = L.DomUtil.create('div', 'info legend'),
+		grades = [0, 10000, 30000, 50000, 70000, 90000],
+		labels = [];
+  div.innerHTML += '<b>Median household income</b><br>';
+	// loop through our density intervals and generate a label with a colored square for each interval
+	for (var i = 0; i < grades.length; i++) {
+		div.innerHTML +=
+			'<i style="background:' + getIncomeColor(grades[i] + 1) + '"></i> ' +
+			formatIncome(grades[i]) + formatIncome2(grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+	}
+	return div;
+};
+
+legendIncome.addTo(mymap);
+
+var legendRace = L.control({position: 'bottomright'});
+legendRace.onAdd = function (map) {
+	var div = L.DomUtil.create('div', 'info legend'),
+		grades = [0, 0.2, 0.4, 0.6, 0.8],
+		labels = [];
+  div.innerHTML += '<b>Black population</b><br>';
+	// loop through our density intervals and generate a label with a colored square for each interval
+	for (var i = 0; i < grades.length; i++) {
+		div.innerHTML +=
+			'<i style="background:' + getRaceColor(grades[i]+0.1) + '"></i> ' +
+			formatLegendRace1(grades[i]) + (grades[i + 1] ? '&ndash;' + formatLegendRace2(grades[i + 1]) + '<br>' : '%+');
+	}
+	return div;
+};
+
+// Add and remove layers
+mymap.on('baselayerchange', function (eventLayer) {
+    // Switch to the legend...
+    if (eventLayer.name === 'Income') {
+        mymap.removeControl(legendRace);
+        legendIncome.addTo(mymap);
+    } else { // Or switch to the treeline legend...
+        mymap.removeControl(legendIncome);
+        legendRace.addTo(mymap);
+    }
+});
+
+
+
+
 </script>
 
 </body>
