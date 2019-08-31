@@ -279,7 +279,7 @@ function highlightRace(feature, layer) {
         color: '#333',
         fillOpacity: 0.7
     });
-    this.bindPopup(this.feature.properties.name + "<br>Black population: <b>" + formatRace(this.feature.properties.black) + "</b>").openPopup();
+    this.bindPopup(this.feature.properties.name + "<br>Black percentage: <b>" + formatRace(this.feature.properties.black) + "</b>" + "<br>Black population: <b>" + formatIncome2(this.feature.properties.black_pop)).openPopup();
     if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
         this.bringToFront();
     }
