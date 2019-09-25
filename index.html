@@ -109,6 +109,7 @@ function raceStyle(feature) {
         fillOpacity: 0.5
     };
 }
+
 function getIncomeColor(d) {
     return d == "No population" ? '#ffffff' :
            d == "N/A" ? '#808080' :
@@ -120,7 +121,6 @@ function getIncomeColor(d) {
                       '#67000d';
 }
 
-
 function incomeStyle(feature) {
     return {
         fillColor: getIncomeColor(feature.properties.income),
@@ -128,6 +128,16 @@ function incomeStyle(feature) {
         opacity: 1,
         color: 'white',
         fillOpacity: 0.5
+    };
+}
+
+function emptyStyle(feature) {
+    return {
+        fillColor: '#ffffff',
+        weight: 1,
+        opacity: 0,
+        color: 'white',
+        fillOpacity: 0
     };
 }
 
@@ -140,6 +150,7 @@ var homicideIcon = L.icon({
 });
 
 //create pane to fix the zindex of the 2 base layers (race and income)
+mymap.createPane('six');
 mymap.createPane('five');
 mymap.createPane('four');
 
@@ -179,11 +190,17 @@ var layerRace = L.geoJSON(dataMap, {
     onEachFeature: onRaceBlock,
     pane: 'four'
 });
+var layerEmpty = L.geoJSON(dataMap, {
+    style: emptyStyle,
+    onEachFeature: onRaceBlock,
+    pane: 'six'
+});
 
 //colect both base layers into an array
 var baseMaps = {
     "Income": layerIncome,
     "Race": layerRace,
+    "Clear map": layerEmpty,
 };
 //setup popup for camera layer
 function onEachCamera(feature, layer) {
@@ -233,12 +250,13 @@ var cameraMaps = {
 };
 
 //Preload income map
-layerIncome.addTo(mymap);
+layerRace.addTo(mymap);
 
 //Load control panel that has both base maps and camera maps option
 var control = L.control.layers(baseMaps, cameraMaps).addTo(mymap);
 mymap.getPane('four').style.zIndex = 300;
 mymap.getPane('five').style.zIndex = 300;
+mymap.getPane('six').style.zIndex = 300;
 
 //mouseover interaction
 var lastClickedIncome = null;
@@ -351,8 +369,6 @@ legendIncome.onAdd = function (map) {
 	return div;
 };
 
-legendIncome.addTo(mymap);
-
 var legendRace = L.control({position: 'bottomright'});
 legendRace.onAdd = function (map) {
 	var div = L.DomUtil.create('div', 'info legend'),
@@ -368,15 +384,20 @@ legendRace.onAdd = function (map) {
 	return div;
 };
 
+legendRace.addTo(mymap);
+
 // Add and remove layers
 mymap.on('baselayerchange', function (eventLayer) {
     // Switch to the legend...
     if (eventLayer.name === 'Income') {
         mymap.removeControl(legendRace);
         legendIncome.addTo(mymap);
-    } else { // Or switch to the treeline legend...
+    } else if (eventLayer.name === 'Race') { // Or switch to the treeline legend...
         mymap.removeControl(legendIncome);
         legendRace.addTo(mymap);
+    } else {
+        mymap.removeControl(legendIncome);
+        mymap.removeControl(legendRace);
     }
 });
 
