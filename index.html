@@ -55,13 +55,31 @@ body {
 .legend {
 	line-height: 18px;
 	color: #555;
+  background-color: rgba(256, 256, 256, 0.6);
+  padding:5px;
 }
-.legend i {
-	width: 18px;
-	height: 18px;
+.legend i, .legend-homicide {
+	width: 10px;
+	height: 10px;
 	float: left;
+  margin:4px;
 	margin-right: 8px;
-	opacity: 0.7;
+}
+
+.legend-homicide {
+  position: relative;
+}
+
+.legend-homicide img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-left: -5px;
+  margin-top: -5px; 
+}
+
+.legend-camera {
+  border-radius: 50%;
 }
 
 @media (max-width: 500px ) {
@@ -384,7 +402,15 @@ legendRace.onAdd = function (map) {
 	return div;
 };
 
+var legendCamera = L.control({position: 'bottomleft'});
+legendCamera.onAdd = function (map) {
+	var div = L.DomUtil.create('div', 'info legend');
+  div.innerHTML += '<i style="background:#0376B4" class="legend-camera"></i>Police camera<br><i style="background:#f5c11f" class="legend-camera"></i>Street camera<br><i style="background:#696969" class="legend-camera"></i>Estimated camera<br><div class="legend-homicide"><img src="/js/icon-cross.png" height="10px" width="10px"></div>Homicide<br>';
+	return div;
+};
+
 legendRace.addTo(mymap);
+legendCamera.addTo(mymap);
 
 // Add and remove layers
 mymap.on('baselayerchange', function (eventLayer) {
