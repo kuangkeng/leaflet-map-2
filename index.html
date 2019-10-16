@@ -102,7 +102,14 @@ body {
 </div>    
 
 <script type="text/javascript">
-var mymap = L.map('map-container').setView([38.634621, -90.239395], 12);
+var zoomlevel;
+if(window.innerWidth<500){
+  zoomlevel = 11;
+} else {
+  zoomlevel = 13;
+}
+
+var mymap = L.map('map-container').setView([38.634621, -90.239395], zoomlevel);
 L.tileLayer('https://maps.wikimedia.org/osm-intl/{z}/{x}/{y}{r}.png', {
 	attribution: '<a href="https://wikimediafoundation.org/wiki/Maps_Terms_of_Use">Wikimedia</a>',
 	minZoom: 1,
