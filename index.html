@@ -46,7 +46,7 @@ body {
 #text {
   font-size: 18px;
   font-weight: normal;
-  line-height: 18px;
+  line-height: 22px;
 }
 .leaflet-popup-close-button {
   display: none;
@@ -94,8 +94,11 @@ body {
 
 <div id="wrapper"> 
     <div class="head">
-        <div class="headline">Race and Income</div>
-        <div id="text">Description: Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</div> 
+        <div class="headline">City-Owned Cameras</div>
+        <div id="text">
+          <p>This map of city-owned surveillance camera locations and 2018 homicides offers a striking visual. Each black X marks a homicide in 2018. Most murders in St. Louis that year occurred in North St. Louis. Most cameras listed on public audits from the police and streets departments are located downtown, far from where the majority of homicides took place. Cameras are clustered in business districts, where incomes tend to be higher, and where residents are whiter.</p> 
+          <p>Click on the top right icon to toggle between block-level income and race census data. On the left hand corner, you can zoom into different neighborhoods by clicking the + sign.</p>   
+          </div> 
     </div>   
     <div class="mapbox" id="map-container">
     </div>
@@ -276,6 +279,10 @@ var cameraMaps = {
 
 //Preload income map
 layerRace.addTo(mymap);
+mymap.addLayer(layerPolice);
+mymap.addLayer(layerStreets);
+mymap.addLayer(layerEstimate);
+mymap.addLayer(layerHomicide);
 
 //Load control panel that has both base maps and camera maps option
 var control = L.control.layers(baseMaps, cameraMaps).addTo(mymap);
