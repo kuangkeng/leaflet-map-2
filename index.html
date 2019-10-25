@@ -158,7 +158,7 @@ function incomeStyle(feature) {
         weight: 1,
         opacity: 1,
         color: 'white',
-        fillOpacity: 0.7
+        fillOpacity: 0.6
     };
 }
 
@@ -191,7 +191,7 @@ var policeStyle = {
     color: "#0376B4",
     weight: 1,
     opacity: 1,
-    fillOpacity: 0.5
+    fillOpacity: 0.7
 };
 var streetsStyle = {
     radius: 5,
@@ -199,7 +199,7 @@ var streetsStyle = {
     color: "#f5c11f",
     weight: 1,
     opacity: 1,
-    fillOpacity: 0.5
+    fillOpacity: 0.7
 };
 var estimateStyle = {
     radius: 5,
@@ -207,7 +207,7 @@ var estimateStyle = {
     color: "#696969",
     weight: 1,
     opacity: 1,
-    fillOpacity: 0.5
+    fillOpacity: 0.7
 };
 
 //Set up base layers
@@ -300,14 +300,14 @@ function highlightIncome(feature, layer) {
       lastClickedIncome.setStyle({
         weight: 1,
         color: 'white',
-        fillOpacity: 0.7
+        fillOpacity: 0.6
       });
     }
     var thisIncome = this;
     this.setStyle({
         weight: 2,
         color: '#333',
-        fillOpacity: 0.8
+        fillOpacity: 0.7
     });
     this.bindPopup(this.feature.properties.name + "<br>Median household income: <b>" + formatIncome(this.feature.properties.income) + "</b>").openPopup();
     if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
@@ -397,7 +397,7 @@ legendIncome.onAdd = function (map) {
 	// loop through our density intervals and generate a label with a colored square for each interval
 	for (var i = 0; i < grades.length; i++) {
 		div.innerHTML +=
-			'<i style="background:' + getIncomeColor(grades[i] + 1) + ';opacity:0.7;"></i> ' +
+			'<i style="background:' + getIncomeColor(grades[i] + 1) + ';opacity:0.6;"></i> ' +
 			formatIncome(grades[i]) + formatIncome2(grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
 	}
 	return div;
